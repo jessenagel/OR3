@@ -1,12 +1,25 @@
 
 
 import cvxpy as py
-
+import numpy as np
 
 n=8
 k=5
+V = [[] for i in range (n)]
+print(V)
+Vertices = [0,1,2,3,4,5,6,7]
+V[0] = [1,2,3,4,7]
+V[1] = [0,5,7]
+V[2] = [0,3,4,5]
+V[3] = [0,2,7]
+V[4] = [0,2,6]
+V[5] = [1,2,6]
+V[6] = [4,5]
+V[7] = [0,1,3]
+S = 0
+T = 7
 
-
+E = [(0,1),(0,2),(0,3),(0,4),(0,7),(1,5),(1,7),(2,3),(2,4),(2,5),(3,7),(4,6),(5,6)]
 wave=[[[] for i in range(n)] for i in range(n)]
 
 wave[0][1]=[1,2,3,4]
@@ -42,46 +55,58 @@ def idx(u,v,j):
 
 #To see what idx does uncomment the next 4 lines :
 
-for u in range(n):
-    for v in range(n):
-        for j in range (k):
-            print(idx(u,v,j))
-
-
-
+# for u in range(n):
+#     for v in range(n):
+#         for j in range (k):
+#             print(idx(u,v,j))
 
 x=py.Variable(n*n*k,boolean=True)  # binary variable
 
 Demuxer=[2,4,5,6]
 
 constraints=[x>=0]
-for
-for v in range (1,7):
-    for i in range (0,k):
-        if v not in Demuxer:
-            constraints += [sum(x[idx(v,w,i)]-x[idx(w,v,i)] for w in range (0,8))]
+for e in E:
+    print(e)
+    for i in range(0,k):
+        if i in wave[e[0]][e[1]] or i in wave[e[1]][e[0]]:
+            w_e =1
+        else:
+            w_e =0
+        constraints += [x[idx(e[0],e[1],i)]+ x[idx(e[1],e[0],i)] <= w_e ]
 
-for v in range (1,7):
+for v in Vertices:
+    if v not in Demuxer:
+        if v != 0 and v != 7:
+            for i in range(0, k):
+                constraints += [sum(x[idx(v,w,i)]-x[idx(w,v,i)] for w in V[v]) == 0]
+
+for v in Vertices:
     if v in Demuxer:
-        constraints += [sum(sum(x[idx(v,w,i)]-x[idx(w,v,i)] for w in range (0,8)) for i in (0,k))]
+        if v != 0 and v != 7:
+            constraints += [sum(sum((x[idx(v,w,i)]-x[idx(w,v,i)]) for w in V[v]) for i in (0,k)) == 0]
+
+for u in range (0,n):
+    for v in range (0,n):
+        if (u,v) not in E and (v,u) not in E:
+            print(u,v)
+            for i in range (0,k):
+               constraints += [x[idx(u,v,i)] == 0]
+
+objective = py.Maximize(sum(sum((x[idx(0,w,i)] - x[idx(w,0,i)]) for w in V[0]) for i in range (0,k)) )
+
+prob = py.Problem(objective, constraints)
+
+prob.solve(solver=py.GLPK_MI)
 
 
 
-# objective = py.Maximize( sum(sum(x[i] for i in )) )
 
-#prob = py.Problem(objective, constraints)
-#
-#prob.solve(solver=py.GLPK_MI)
+print('objective =', prob.value)
 
+xval = x.value
 
-#
-#
-#print('objective =', prob.value)
-#
-#xval = x.value
-#
-#for u in range(n):
-#    for v in range(n):
-#        for j in range(k):
-#            if xval[idx(u,v,j)]>0.5:
-#                print('x[%s,%s,%s]=' %(u,v,j),int(xval[idx(u,v,j)]))
+for u in range(n):
+   for v in range(n):
+       for j in range(k):
+           if xval[idx(u,v,j)]>0.5:
+               print('x[%s,%s,%s]=' %(u,v,j),int(xval[idx(u,v,j)]))
