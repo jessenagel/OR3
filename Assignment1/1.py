@@ -96,8 +96,6 @@ prob = py.Problem(objective, constraints)
 prob.solve(solver=py.GLPK_MI)
 
 
-
-
 print('objective =', prob.value)
 
 xval = x.value
