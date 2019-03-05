@@ -102,34 +102,37 @@ def main():
     y1 = py.Variable((n,n))   #y1[i,j] is the value of flow 1 on arc (i,j)
     y2 = py.Variable((n,n))   #y2[i,j] is the value of flow 2 on arc (i,j)
     
-    constraints = [x>=0, y1>=0,y2>=0]
-    
+    constraints = [x>=0]
     ####################
     for i in range(n):
+        constraints+= [x[i,i]==0]
+    for i in range(n):
         for j in range(n):
-            constraints += [x[i,j]<=A[i,j]]
+            constraints += [x[i,j] <= A[i,j]]
 
     for i in range(n):
         for j in range(n):
             constraints += [x[i, j] == x[j,i]]
 
-    constraints += [sum(y1[0, j] for j in range (n))==1]
-    constraints += [sum(y1[i, 1] for i in range (n))==1]
+    constraints += [sum(y1[0, j] for j in range (n)) == 1]
+    constraints += [sum(y1[i, 1] for i in range (n)) == 1]
     constraints += [sum(y2[n-2, j] for j in range(n)) == 1]
     constraints += [sum(y2[i, n-1] for i in range(n)) == 1]
 
+    print("test",A[0,0])
+
     for i in range(n):
         for j in range(n):
-            constraints += [y1[i, j]<=x[i, j]]
+            constraints += [y1[i, j] <= x[i, j]]
     for i in range(n):
         for j in range(n):
-            constraints += [y1[i, j]==y1[j, i]]
+            constraints += [y1[i, j] == -y1[j, i]]
     for i in range(n):
         for j in range(n):
-            constraints += [y2[i, j]<=x[i, j]]
+            constraints += [y2[i, j] <= x[i, j]]
     for i in range(n):
         for j in range(n):
-            constraints += [y2[i, j] == y2[j, i]]
+            constraints += [y2[i, j] == -y2[j, i]]
 
     for i in range(2,n):
         constraints += [sum(y1[i, j] for j in range(n))-sum(y1[j, i] for j in range(n))==0]
@@ -137,16 +140,8 @@ def main():
         constraints += [sum(y2[i, j] for j in range(n))-sum(y2[j, i] for j in range(n))==0]
 
     print("constraints added")
-    """
-    TO DO : 
-    Add constraints that say :
-        x[i,j] = 0 if there is no edge between i and j
-        x[i,j]=x[j,i] for all i and j 
-        flow constraints
-    Add objective
-    Solve the problem
-    """
-    objective = py.Maximize(sum(sum(x[i,j]*D[i,j] for i in range(n)for j in range(n))))
+
+    objective = py.Minimize(sum(sum(x[i,j]*D[i,j] for i in range(n))for j in range(n)))
     prob = py.Problem(objective, constraints)
     print("Solving")
     prob.solve(solver=py.GLPK_MI)
@@ -157,7 +152,10 @@ def main():
         print("let's go")
         print(prob.status)
         if prob.status == 'optimal':
+            yval=np.array(y1.value)
+            print(yval)
             xval=np.array(x.value)
+            print(xval)
             plot_graph(points,xval)  # the edges bought
             print('Value is',prob.value)
     except:
