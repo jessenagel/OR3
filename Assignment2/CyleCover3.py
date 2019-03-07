@@ -39,40 +39,6 @@ def plot_solution(points,A):
     plt.ylim(min(y)-0.05*(max(y)-min(y)), max(y)+0.05*(max(y)-min(y)))    
     plt.show()
 
-
-def plot_graph(points, A):
-    """
-    Input:
-        List of points
-        Adjacency matrix A for the points
-    """
-    n = len(points)
-    x = [];
-    y = []
-    for i in range(n):
-        x.append(points[i][0])
-        y.append(points[i][1])
-        plt.plot(x, y, 'co', color='r', markersize=2)
-
-    for i in range(n):
-        for j in range(n):
-            if A[i, j] == 1:
-                if not (i == j):
-                    plt.arrow(x[i], y[i], x[j] - x[i], y[j] - y[i], head_width=0, linewidth=0.5,
-                              color='g', length_includes_head=False)
-
-    plt.text(points[0, 0], points[0, 1], "s1", size=15)
-    plt.text(points[1, 0], points[1, 1], "t1", size=15)
-    plt.text(points[n - 2, 0], points[n - 2, 1], "s2", size=15)
-    plt.text(points[n - 1, 0], points[n - 1, 1], "t2", size=15)
-
-    # Set box slitghtly larger than the range of x and y
-    plt.xlim(min(x) - 0.05 * (max(x) - min(x)), max(x) + 0.05 * (max(x) - min(x)))
-    plt.ylim(min(y) - 0.05 * (max(y) - min(y)), max(y) + 0.05 * (max(y) - min(y)))
-
-    plt.show()
-
-
 def compute_distances(points):
     """
     Output: D[i,j]=D[j,i] is the Euclidean distance between points i and j
@@ -94,11 +60,14 @@ def main():
     np.random.seed(14)
 
     points = np.random.normal(size=(n,2))    # create random points
-    print(points)
     D=compute_distances(points)
                
     x = cy.Variable((n,n),boolean=True)   #x[i,j]=1 if there is an arc from i to j
     y = cy.Variable((n,n),boolean=True)   #y[i,j] colors each edge either 0 or 1
+
+    # For old version of CVXPY:
+    # x = cy.Bool(n,n)   #x[i,j]=1 if there is an arc from i to j
+    # y = cy.Bool(n,n)   #y[i,j] colors each edge either 0 or 1
     #########################
     
     constraints = [x>=0]
@@ -113,13 +82,13 @@ def main():
     for i in range(n):
         for j in range(n):
             for k in range(n):
-                for l in range(n):
-                    constraints += [y[i,j]<=x[i,j] - 0.5*(y[i,k]+y[i,l])]
+                constraints +=[y[i,j]<=1-y[j,k]+1-x[i,j]]
     for i in range(n):
         for j in range(n):
-            constraints += [y[i, j] <= x[i, j]]
+            for k in range(n):
+                constraints +=[y[i,j]>=1-y[j,k]-1+x[i,j]]
 
-    constraints += [sum(sum(x[i,j]for i in range(n))for j in range (n)) ==0]
+
 
     for i in range(n):
         constraints += [x[i, i] == 0]
@@ -134,7 +103,7 @@ def main():
     print(prob.status)
     try:
         xval=np.array(x.value)
-        plot_graph(points,xval)
+        plot_solution(points,xval)
     except:
         print('No solution found')
     

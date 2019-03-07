@@ -95,13 +95,18 @@ def main():
                 
     A=define_edges(D,n) #adjacency matrix: A[i,j]=1 if there is an edge (i,j)
     
-    # plot_graph(points,A) #plot the points and edges defined by A
+    plot_graph(points,A) #plot the points and edges defined by A
     
     
     x = py.Variable((n,n),boolean=True)        #x[i,j]=1 if edge (i,j) is bought
     y1 = py.Variable((n,n))   #y1[i,j] is the value of flow 1 on arc (i,j)
     y2 = py.Variable((n,n))   #y2[i,j] is the value of flow 2 on arc (i,j)
-    
+
+    # For old version of CVXPY:
+    # x = py.Bool(n,n)  # x[i,j]=1 if edge (i,j) is bought
+    # y1 = py.Variable(n, n)  # y1[i,j] is the value of flow 1 on arc (i,j)
+    # y2 = py.Variable(n, n)  # y2[i,j] is the value of flow 2 on arc (i,j)
+
     constraints = [x>=0]
     ####################
     for i in range(n):
@@ -118,8 +123,6 @@ def main():
     constraints += [sum(y1[i, 1] for i in range (n)) == 1]
     constraints += [sum(y2[n-2, j] for j in range(n)) == 1]
     constraints += [sum(y2[i, n-1] for i in range(n)) == 1]
-
-    print("test",A[0,0])
 
     for i in range(n):
         for j in range(n):
@@ -139,20 +142,16 @@ def main():
     for i in range(0,n-2):
         constraints += [sum(y2[i, j] for j in range(n))-sum(y2[j, i] for j in range(n))==0]
 
-    print("constraints added")
 
     objective = py.Minimize(sum(sum(x[i,j]*D[i,j] for i in range(n))for j in range(n)))
     prob = py.Problem(objective, constraints)
     print("Solving")
     prob.solve(solver=py.GLPK_MI)
     print("Solved")
-
+    print(prob.status)
     #####################
     try:
-        print("let's go")
-        print(prob.status)
         if prob.status == 'optimal':
-            yval=np.array(y1.value)
             xval=np.array(x.value)
             plot_graph(points,xval)  # the edges bought
             print('Value is',prob.value)
