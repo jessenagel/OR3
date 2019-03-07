@@ -120,15 +120,12 @@ def main():
     
     #########################
     print(prob.status)
-    # try:
-    xval=np.array(x.value)
-    print(xval)
-    plot_graph(points,xval)
-    
-    # except:
-    print('No solution found')
+    try:
+        xval=np.array(x.value)
+        plot_solution(points,xval)
+    except:
+        print('No solution found')
     
 main()
 
 
-    

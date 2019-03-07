@@ -15,7 +15,6 @@ V[4] = [0,2,6]
 V[5] = [1,2,6]
 V[6] = [4,5]
 V[7] = [0,1,3]
-print(V)
 
 E = [(0,1),(0,2),(0,3),(0,4),(0,7),(1,5),(1,7),(2,3),(2,4),(2,5),(3,7),(4,6),(5,6)]
 wave=[[[] for i in range(n)] for i in range(n)]
@@ -58,9 +57,9 @@ def idx(u,v,j):
 #         for j in range (k):
 #             print(idx(u,v,j))
 
-x=py.Variable(n*n*k,boolean=True)  # binary variable
+x=py.Variable(n*n*k,boolean=True)  # binary variable, old syntax x=py.Bool(n*n*k)
 
-Demuxer=[2,4,5,6]
+Demuxer=[]
 
 constraints=[x>=0]
 for e in E:
@@ -80,8 +79,7 @@ for v in Vertices:
 for v in Vertices:
     if v in Demuxer:
         if v != 0 and v != 7:
-            print(V[v])
-            constraints += [(sum(sum((x[idx(v,w,i)] - x[idx(w,v,i)]) for w in V[v]) for i in (0,k))) == 0]
+            constraints += [(sum(sum((x[idx(v,w,i)] - x[idx(w,v,i)]) for w in V[v]) for i in range (0,k))) == 0]
 
 for u in range (0,n):
     for v in range (0,n):

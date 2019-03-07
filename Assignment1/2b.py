@@ -16,7 +16,7 @@ v = [-3,-4,-5,-6,-8,2,3,4,-3,-4,7,8,5,5]
 #         for j in range (k):
 #             print(idx(u,v,j))
 
-x=py.Variable(n,boolean=True)  # binary variable
+x=py.Variable(n,boolean=True)  # binary variable, old syntax x=py.Bool(n)
 
 
 constraints=[x>=0]

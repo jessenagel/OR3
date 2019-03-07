@@ -98,7 +98,7 @@ def main():
     D=compute_distances(points)
                
     x = cy.Variable((n,n),boolean=True)   #x[i,j]=1 if there is an arc from i to j
-    
+    y = cy.Variable((n,n),boolean=True)   #y[i,j] colors each edge either 0 or 1
     #########################
     
     constraints = [x>=0]
@@ -109,10 +109,17 @@ def main():
     for i in range(n):
         for j in range(n):
             constraints += [x[i, j] == x[j,i]]
+
     for i in range(n):
         for j in range(n):
             for k in range(n):
-                constraints += [x[k, j]+x[i,k]+x[i,j]<=2]
+                for l in range(n):
+                    constraints += [y[i,j]<=x[i,j] - 0.5*(y[i,k]+y[i,l])]
+    for i in range(n):
+        for j in range(n):
+            constraints += [y[i, j] <= x[i, j]]
+
+    constraints += [sum(sum(x[i,j]for i in range(n))for j in range (n)) ==0]
 
     for i in range(n):
         constraints += [x[i, i] == 0]
@@ -127,7 +134,7 @@ def main():
     print(prob.status)
     try:
         xval=np.array(x.value)
-        plot_solution(points,xval)
+        plot_graph(points,xval)
     except:
         print('No solution found')
     

@@ -153,9 +153,7 @@ def main():
         print(prob.status)
         if prob.status == 'optimal':
             yval=np.array(y1.value)
-            print(yval)
             xval=np.array(x.value)
-            print(xval)
             plot_graph(points,xval)  # the edges bought
             print('Value is',prob.value)
     except:
